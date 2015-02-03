@@ -25,7 +25,7 @@ type Gist struct {
 type FileResponse struct {
 	Size     int    `json:"size"`
 	Type     string `json:"type"`
-	Language string `json:"laguage"`
+	Language string `json:"language"`
 }
 
 type GistResponse struct {
