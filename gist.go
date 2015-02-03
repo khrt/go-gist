@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -97,8 +99,10 @@ func (gist *Gist) Update(uid string) (string, error) {
 
 func GistList(user string) ([]*GistResponse, error) {
 	var uri string
-	if user != "" {
+	if config.APIKey != "" && user != "" {
 		uri = "/users/" + user + "/gists"
+	} else {
+		uri = "/gists"
 	}
 
 	req, err := http.NewRequest("GET", GitHubAPIURL+uri, nil)
@@ -137,6 +141,14 @@ func doRequest(req *http.Request) ([]byte, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		var f interface{}
+		if err := json.Unmarshal(body, &f); err != nil {
+			return nil, err
+		}
+		return nil, errors.New(fmt.Sprintf("%v", f.(map[string]interface{})["message"]))
 	}
 
 	return body, nil
