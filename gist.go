@@ -47,19 +47,11 @@ func (gist *Gist) Create(anonymous bool) (string, error) {
 		return "", err
 	}
 
-	req.Header.Add("Content-type", "application/json")
 	if config.APIKey != "" && !anonymous {
 		req.Header.Add("Authorization", "token "+config.APIKey)
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := doRequest(req)
 	if err != nil {
 		return "", err
 	}
@@ -85,19 +77,11 @@ func (gist *Gist) Update(uid string) (string, error) {
 		return "", err
 	}
 
-	req.Header.Add("Content-type", "application/json")
 	if config.APIKey != "" {
 		req.Header.Add("Authorization", "token "+config.APIKey)
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := doRequest(req)
 	if err != nil {
 		return "", err
 	}
@@ -122,10 +106,26 @@ func GistList(user string) ([]*GistResponse, error) {
 		return nil, err
 	}
 
-	req.Header.Add("Content-type", "application/json")
 	if config.APIKey != "" {
 		req.Header.Add("Authorization", "token "+config.APIKey)
 	}
+
+	body, err := doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var gistResp []*GistResponse
+	err = json.Unmarshal(body, &gistResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return gistResp, nil
+}
+
+func doRequest(req *http.Request) ([]byte, error) {
+	req.Header.Add("Content-type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -139,11 +139,5 @@ func GistList(user string) ([]*GistResponse, error) {
 		return nil, err
 	}
 
-	var gistResp []*GistResponse
-	err = json.Unmarshal(body, &gistResp)
-	if err != nil {
-		return nil, err
-	}
-
-	return gistResp, nil
+	return body, nil
 }
