@@ -42,9 +42,13 @@ func list(user string) {
 	}
 
 	for _, r := range resp {
-		var files []string
-		for f := range r.Files {
-			files = append(files, f)
+		description := r.Description
+		if description == "" {
+			var files []string
+			for f := range r.Files {
+				files = append(files, f)
+			}
+			description = strings.Join(files, " ")
 		}
 
 		var secret string
@@ -52,7 +56,7 @@ func list(user string) {
 			secret = "(secret)"
 		}
 
-		fmt.Printf("%s %s %s\n", r.HtmlUrl, strings.Join(files, " "), secret)
+		fmt.Printf("%s %s %s\n", r.HtmlUrl, description, secret)
 	}
 }
 
