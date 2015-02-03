@@ -1,66 +1,38 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
 
-const (
-	ConfigFileName = ".gogist"
-	ConfigFileEnv  = "GOGIST_CONFIG_FILE"
-)
+const ConfigFileName = ".gist"
 
 type Config struct {
-	APIKey string `json:"apikey"`
+	APIKey string
 	file   string
 }
 
 func ConfigNew() *Config {
 	c := &Config{}
+	c.Load()
 	return c
 }
 
 func (c *Config) Update(APIKey string) error {
 	c.APIKey = strings.TrimSpace(APIKey)
-
-	f, err := os.Create(c.file)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	e := json.NewEncoder(f)
-	return e.Encode(c)
+	return ioutil.WriteFile(c.file, []byte(c.APIKey), 0644)
 }
 
-func (c *Config) Load() error {
-	fileName, err := c.resolvePath(ConfigFileName, os.Getenv(ConfigFileEnv))
-	if err != nil {
-		return err
+func (c *Config) Load() {
+	c.file, _ = c.resolvePath(ConfigFileName)
+	apikey, _ := ioutil.ReadFile(c.file)
+	if len(apikey) > 0 {
+		c.APIKey = strings.TrimSpace(string(apikey))
 	}
-
-	c.file = fileName
-
-	if _, err := os.Stat(c.file); err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("File does not exist")
-		}
-		return err
-	}
-
-	f, err := os.Open(c.file)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	d := json.NewDecoder(f)
-	return d.Decode(c)
 }
 
 func (c *Config) homeDir() (string, error) {
@@ -68,7 +40,6 @@ func (c *Config) homeDir() (string, error) {
 
 	if runtime.GOOS == "windows" {
 		dir = os.Getenv("USERPROFILE")
-
 		if dir == "" {
 			dir = os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
 		}
@@ -83,17 +54,10 @@ func (c *Config) homeDir() (string, error) {
 	return dir, nil
 }
 
-func (c *Config) resolvePath(argPath, envPath string) (string, error) {
-	path := envPath
-
-	if path == "" {
-		homeDir, err := c.homeDir()
-		if err != nil {
-			return "", err
-		}
-
-		path = filepath.Join(homeDir, argPath)
+func (c *Config) resolvePath(argPath string) (string, error) {
+	homeDir, err := c.homeDir()
+	if err != nil {
+		return "", err
 	}
-
-	return path, nil
+	return filepath.Join(homeDir, argPath), nil
 }

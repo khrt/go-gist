@@ -1,37 +1,24 @@
 package main
 
-import (
-	"os"
-	"testing"
-)
-
-func TestConfigNew(t *testing.T) {
-	c := ConfigNew()
-	t.Log("Config:", c)
-}
-
-func TestConfigLoad(t *testing.T) {
-	c := ConfigNew()
-
-	if err := c.Load(); err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log("Config:", c)
-}
+import "testing"
 
 func TestConfigUpdate(t *testing.T) {
-	os.Setenv(ConfigFileEnv, "./env-gogist.conf")
 	c := ConfigNew()
 
-	if err := c.Load(); err != nil {
-		t.Log("error", err)
-	}
+	origApiKey := c.APIKey // 08ec43864e8131ab4f5778041eb663c67119b786
+	newApiKey := "newkey"
 
-	err := c.Update("newkey")
-	if err != nil {
+	if err := c.Update(newApiKey); err != nil {
 		t.Fatal(err)
 	}
 
-	t.Log("Config:", c)
+	c.Load()
+
+	if c.APIKey != newApiKey {
+		t.Fail()
+	}
+
+	if err := c.Update(origApiKey); err != nil {
+		t.Fatal(err)
+	}
 }
