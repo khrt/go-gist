@@ -30,7 +30,8 @@ func main() {
 	} else if *user != "" {
 		list(*user)
 	} else if flag.NArg() > 0 {
-		create(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args())
+		createOrUpdate(*update, *anonymousFlag, !*privateFlag,
+			*description, *gistType, flag.Args())
 	}
 }
 
@@ -55,7 +56,7 @@ func list(user string) {
 	}
 }
 
-func create(uid string, anonymous bool, public bool, desc string, gistType string, args []string) {
+func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistType string, args []string) {
 	gist := &Gist{
 		make(map[string]*File),
 		desc,
