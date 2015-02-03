@@ -10,11 +10,6 @@ import (
 var config = ConfigNew()
 
 func main() {
-	err := config.Load()
-	if err != nil {
-		panic(err)
-	}
-
 	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
 	description := flag.String("d", "", "A description of the gist.")
 	gistType := flag.String("t", "", "Sets the file extension and syntax type.")
