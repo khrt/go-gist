@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"strings"
 )
 
 var config = ConfigNew()
@@ -14,19 +15,51 @@ func main() {
 		panic(err)
 	}
 
-	login := flag.Bool("login", false, "Authenticate gist on this computer.")
-	private := flag.Bool("p", false, "Indicates whether the gist is private.")
+	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
 	description := flag.String("d", "", "A description of the gist.")
-	update := flag.String("u", "", "Update an existing gist.")
-	list := flag.String("l", "", "List gists for user.")
-	anonymous := flag.Bool("a", false, "Create an anonymous gist.")
 	gistType := flag.String("t", "", "Sets the file extension and syntax type.")
+	loginFlag := flag.Bool("login", false, "Authenticate gist on this computer.")
+	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
+	update := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
+	user := flag.String("l", "", "List gists for user.")
+
 	flag.Parse()
 
+	if *loginFlag {
+		login()
+	} else if *user != "" {
+		list(*user)
+	} else if flag.NArg() > 0 {
+		create(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args())
+	}
+}
+
+func list(user string) {
+	resp, err := GistList(user)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for _, r := range resp {
+		var files []string
+		for f := range r.Files {
+			files = append(files, f)
+		}
+
+		var secret string
+		if r.Public == false {
+			secret = "(secret)"
+		}
+
+		fmt.Printf("%s %s %s\n", r.HtmlUrl, strings.Join(files, " "), secret)
+	}
+}
+
+func create(uid string, anonymous bool, public bool, desc string, gistType string, args []string) {
 	gist := &Gist{
 		make(map[string]*File),
-		*description,
-		!*private,
+		desc,
+		public,
 	}
 
 	for _, name := range flag.Args() {
@@ -34,20 +67,30 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
+		if gistType != "" {
+			name += "." + gistType
+		}
+
 		gist.Files[name] = &File{name, string(content)}
 	}
 
-	var gistUrl string
+	var url string
+	var err error
 
-	if *update != "" {
-		gistUrl, err = gist.Update(*update)
+	if uid != "" {
+		url, err = gist.Update(uid)
 	} else {
-		gistUrl, err = gist.Create(*anonymous)
+		url, err = gist.Create(anonymous)
 	}
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(gistUrl)
+	fmt.Println(url)
+}
+
+func login() {
+
 }
