@@ -4,36 +4,45 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
 var config = ConfigNew()
 
 func main() {
+	config.Load()
+
 	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
 	description := flag.String("d", "", "A description of the gist.")
 	gistType := flag.String("t", "", "Sets the file extension and syntax type.")
 	loginFlag := flag.Bool("login", false, "Authenticate gist on this computer.")
 	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
 	update := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
-	user := flag.String("l", "", "List gists for user.")
+	listFlag := flag.Bool("l", false, "List gists.")
 
 	flag.Parse()
 
+	var err error
+
 	if *loginFlag {
-		login()
-	} else if *user != "" {
-		list(*user)
+		err = login()
+	} else if *listFlag {
+		err = list()
 	} else if flag.NArg() > 0 {
-		createOrUpdate(*update, *anonymousFlag, !*privateFlag,
-			*description, *gistType, flag.Args())
+		err = createOrUpdate(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args())
+	}
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
 	}
 }
 
-func list(user string) {
-	resp, err := GistList(user)
+func list() error {
+	resp, err := GistList()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	for _, r := range resp {
@@ -53,9 +62,11 @@ func list(user string) {
 
 		fmt.Printf("%s %s %s\n", r.HtmlUrl, description, secret)
 	}
+
+	return nil
 }
 
-func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistType string, args []string) {
+func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistType string, args []string) error {
 	gist := &Gist{
 		make(map[string]*File),
 		desc,
@@ -65,7 +76,7 @@ func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistTy
 	for _, name := range flag.Args() {
 		content, err := ioutil.ReadFile(name)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		if gistType != "" {
@@ -85,12 +96,13 @@ func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistTy
 	}
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Println(url)
+	return nil
 }
 
-func login() {
-
+func login() error {
+	return nil
 }

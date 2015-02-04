@@ -97,15 +97,8 @@ func (gist *Gist) Update(uid string) (string, error) {
 	return gistResp.HtmlUrl, nil
 }
 
-func GistList(user string) ([]*GistResponse, error) {
-	var uri string
-	if config.APIKey != "" && user != "" {
-		uri = "/users/" + user + "/gists"
-	} else {
-		uri = "/gists"
-	}
-
-	req, err := http.NewRequest("GET", GitHubAPIURL+uri, nil)
+func GistList() ([]*GistResponse, error) {
+	req, err := http.NewRequest("GET", GitHubAPIURL+"/gists", nil)
 	if err != nil {
 		return nil, err
 	}
