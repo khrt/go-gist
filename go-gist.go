@@ -67,11 +67,7 @@ func list() error {
 }
 
 func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistType string, args []string) error {
-	gist := &Gist{
-		make(map[string]*File),
-		desc,
-		public,
-	}
+	gist := &Gist{make(map[string]*File), desc, public}
 
 	for _, name := range flag.Args() {
 		content, err := ioutil.ReadFile(name)
