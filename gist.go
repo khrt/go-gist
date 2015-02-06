@@ -49,8 +49,8 @@ func (gist *Gist) Create(anonymous bool) (string, error) {
 		return "", err
 	}
 
-	if config.APIKey != "" && !anonymous {
-		req.Header.Add("Authorization", "token "+config.APIKey)
+	if config.Token != "" && !anonymous {
+		req.Header.Add("Authorization", "token "+config.Token)
 	}
 
 	body, err := doRequest(req)
@@ -79,8 +79,8 @@ func (gist *Gist) Update(uid string) (string, error) {
 		return "", err
 	}
 
-	if config.APIKey != "" {
-		req.Header.Add("Authorization", "token "+config.APIKey)
+	if config.Token != "" {
+		req.Header.Add("Authorization", "token "+config.Token)
 	}
 
 	body, err := doRequest(req)
@@ -103,8 +103,8 @@ func GistList() ([]*GistResponse, error) {
 		return nil, err
 	}
 
-	if config.APIKey != "" {
-		req.Header.Add("Authorization", "token "+config.APIKey)
+	if config.Token != "" {
+		req.Header.Add("Authorization", "token "+config.Token)
 	}
 
 	body, err := doRequest(req)

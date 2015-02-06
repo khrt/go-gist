@@ -12,8 +12,8 @@ import (
 const ConfigFileName = ".gist"
 
 type Config struct {
-	APIKey string
-	file   string
+	Token string
+	file  string
 }
 
 func ConfigNew() *Config {
@@ -22,16 +22,16 @@ func ConfigNew() *Config {
 	return c
 }
 
-func (c *Config) Update(APIKey string) error {
-	c.APIKey = strings.TrimSpace(APIKey)
-	return ioutil.WriteFile(c.file, []byte(c.APIKey), 0644)
+func (c *Config) Update(Token string) error {
+	c.Token = strings.TrimSpace(Token)
+	return ioutil.WriteFile(c.file, []byte(c.Token), 0644)
 }
 
 func (c *Config) Load() {
 	c.file, _ = c.resolvePath(ConfigFileName)
 	apikey, _ := ioutil.ReadFile(c.file)
 	if len(apikey) > 0 {
-		c.APIKey = strings.TrimSpace(string(apikey))
+		c.Token = strings.TrimSpace(string(apikey))
 	}
 }
 
