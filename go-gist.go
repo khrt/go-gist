@@ -100,5 +100,34 @@ func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistTy
 }
 
 func login() error {
+	fmt.Println("Obtaining OAuth2 access_token from GitHub.")
+
+	var username, password string
+
+	fmt.Print("GitHub usename: ")
+	fmt.Scanf("%s", &username)
+
+	fmt.Print("GitHub password: ")
+	//if err := exec.Command("/bin/stty", "-echo").Run(); err != nil {
+	//	return err
+	//}
+	fmt.Scanf("%s", &password)
+	//if err := exec.Command("/bin/stty", "echo").Run(); err != nil {
+	//	return err
+	//}
+
+	fmt.Println()
+
+	token, err := Authorize(username, password)
+	if err != nil {
+		return err
+	}
+
+	if err := config.Update(token); err != nil {
+		return err
+	}
+
+	fmt.Println("OK")
+
 	return nil
 }
