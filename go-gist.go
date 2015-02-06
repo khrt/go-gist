@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"syscall"
 )
 
 var config = ConfigNew()
@@ -20,6 +21,7 @@ func main() {
 	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
 	update := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
 	listFlag := flag.Bool("l", false, "List gists.")
+	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")
 
 	flag.Parse()
 
@@ -30,7 +32,7 @@ func main() {
 	} else if *listFlag {
 		err = list()
 	} else if flag.NArg() > 0 {
-		err = createOrUpdate(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args())
+		err = createOrUpdate(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args(), *copyFlag)
 	}
 
 	if err != nil {
@@ -66,7 +68,7 @@ func list() error {
 	return nil
 }
 
-func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistType string, args []string) error {
+func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistType string, args []string, copyFlag bool) error {
 	gist := &Gist{make(map[string]*File), desc, public}
 
 	for _, name := range flag.Args() {
@@ -95,6 +97,10 @@ func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistTy
 		return err
 	}
 
+	//if copyFlag {
+	//	url
+	//}
+
 	fmt.Println(url)
 	return nil
 }
@@ -108,13 +114,13 @@ func login() error {
 	fmt.Scanf("%s", &username)
 
 	fmt.Print("GitHub password: ")
-	//if err := exec.Command("/bin/stty", "-echo").Run(); err != nil {
-	//	return err
-	//}
+	if _, err := syscall.ForkExec("/bin/stty", []string{"-echo"}, nil); err != nil {
+		return err
+	}
 	fmt.Scanf("%s", &password)
-	//if err := exec.Command("/bin/stty", "echo").Run(); err != nil {
-	//	return err
-	//}
+	if _, err := syscall.ForkExec("/bin/stty", []string{"echo"}, nil); err != nil {
+		return err
+	}
 
 	fmt.Println()
 
