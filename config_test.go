@@ -5,7 +5,7 @@ import "testing"
 func TestConfigUpdate(t *testing.T) {
 	c := ConfigNew()
 
-	origApiKey := c.APIKey
+	origApiKey := c.Token
 	newApiKey := "newkey"
 
 	if err := c.Update(newApiKey); err != nil {
@@ -14,7 +14,7 @@ func TestConfigUpdate(t *testing.T) {
 
 	c.Load()
 
-	if c.APIKey != newApiKey {
+	if c.Token != newApiKey {
 		t.Fail()
 	}
 
