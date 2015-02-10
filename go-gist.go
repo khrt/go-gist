@@ -15,15 +15,16 @@ func main() {
 	config.Load()
 
 	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
-	description := flag.String("d", "", "A description of the gist.")
-	gistType := flag.String("t", "", "Sets the file extension and syntax type.")
-	loginFlag := flag.Bool("login", false, "Authenticate gist on this computer.")
-	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
-	update := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
-	listFlag := flag.Bool("l", false, "List gists.")
 	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")
+	listFlag := flag.Bool("l", false, "List gists.")
+	loginFlag := flag.Bool("login", false, "Authenticate gist on this computer.")
 	pasteFlag := flag.Bool("P", false, "Paste from the clipboard to gist.")
+	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
+
+	desc := flag.String("d", "", "A description of the gist.")
 	filename := flag.String("f", "", "Sets the filename and syntax type.")
+	filetype := flag.String("t", "", "Sets the file extension and syntax type.")
+	uid := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
 
 	flag.Parse()
 
@@ -34,7 +35,7 @@ func main() {
 	} else if *listFlag {
 		err = list()
 	} else if *pasteFlag || flag.NArg() > 0 {
-		err = createOrUpdate(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args(), *copyFlag, *pasteFlag, *filename)
+		err = makeGist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag)
 	}
 
 	if err != nil {
@@ -70,9 +71,7 @@ func list() error {
 	return nil
 }
 
-func createOrUpdate(uid string, anonymous, public bool, desc string, gistType string, args []string, copyFlag, pasteFlag bool, filename string) error {
-	gist := &Gist{make(map[string]*File), desc, public}
-
+func makeGist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag bool) error {
 	var err error
 	var clipboard *Clipboard
 
@@ -82,13 +81,15 @@ func createOrUpdate(uid string, anonymous, public bool, desc string, gistType st
 		}
 	}
 
+	gist := &Gist{make(map[string]*File), desc, public}
+
 	if pasteFlag {
 		var name, content string
 
 		if filename != "" {
 			name = filename
-		} else if filename == "" && gistType != "" {
-			name = "a." + gistType
+		} else if filename == "" && filetype != "" {
+			name = "untitled." + filetype
 		} else {
 			name = "untitled"
 		}
@@ -105,8 +106,8 @@ func createOrUpdate(uid string, anonymous, public bool, desc string, gistType st
 				return err
 			}
 
-			if gistType != "" {
-				name += "." + gistType
+			if filetype != "" {
+				name += "." + filetype
 			}
 
 			gist.Files[name] = &File{name, string(content)}
