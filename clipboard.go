@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -21,16 +21,20 @@ var ClipboardCommands = []Clipboard{
 }
 
 func NewClipboard() (*Clipboard, error) {
+	var clipboard Clipboard
 
 	for _, c := range ClipboardCommands {
-		fmt.Println(c)
+		if runtime.GOOS == "windows" {
+			return nil, errors.New("Clipboard doesn't work on Windows.")
+		} else {
+			cmd := exec.Command("which", strings.Split(c.copyCmd, " ")[0])
+			if err := cmd.Run(); err == nil {
+				clipboard = c
+			}
+		}
 	}
 
-	//if runtime.GOOS == "windows" {
-	//} else {
-	//}
-
-	return &ClipboardCommands[2], nil
+	return &clipboard, nil
 }
 
 func (c *Clipboard) Copy(content string) error {

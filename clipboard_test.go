@@ -5,10 +5,13 @@ import (
 	"time"
 )
 
-//func TestNewClipboard(t *testing.T) {
-//}
+func TestNewClipboard(t *testing.T) {
+	if _, err := NewClipboard(); err != nil {
+		t.Fatal(err)
+	}
+}
 
-func TestClipboard(t *testing.T) {
+func TestClipboardCopy(t *testing.T) {
 	c, err := NewClipboard()
 	if err != nil {
 		t.Fatal(err)
