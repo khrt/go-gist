@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type AuthorizationRequest struct {
@@ -22,7 +23,7 @@ type AuthorizationResponse struct {
 func Authorize(username, password string) (string, error) {
 	payload := AuthorizationRequest{
 		[]string{"gist"},
-		"go-gist", //fmt.Sprintf("go-gist (%d)", time.Now().Unix()),
+		fmt.Sprintf("go-gist (%d)", time.Now().Format(time.RFC822)),
 		"https://github.com/khrt/go-gist",
 	}
 
