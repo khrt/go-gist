@@ -3,8 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -134,11 +132,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 	}
 
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		var f interface{}
-		if err := json.Unmarshal(body, &f); err != nil {
-			return nil, err
-		}
-		return nil, errors.New(fmt.Sprintf("%v", f.(map[string]interface{})["message"]))
+		return nil, GistParseError(body)
 	}
 
 	return body, nil

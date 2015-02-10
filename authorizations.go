@@ -3,12 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type AuthorizationRequest struct {
@@ -18,15 +16,13 @@ type AuthorizationRequest struct {
 }
 
 type AuthorizationResponse struct {
-	Id    int
-	URL   string
 	Token string
 }
 
 func Authorize(username, password string) (string, error) {
 	payload := AuthorizationRequest{
 		[]string{"gist"},
-		fmt.Sprintf("go-gist (%d)", time.Now().Unix()),
+		"go-gist", //fmt.Sprintf("go-gist (%d)", time.Now().Unix()),
 		"https://github.com/khrt/go-gist",
 	}
 
@@ -70,22 +66,7 @@ func Authorize(username, password string) (string, error) {
 	}
 
 	if resp.StatusCode != 201 {
-		var e map[string]json.RawMessage
-		if err := json.Unmarshal(body, &e); err != nil {
-			return "", err
-		}
-
-		message := string(e["message"])
-
-		if e["errors"] != nil {
-			var ee []map[string]string
-			if err := json.Unmarshal(e["errors"], &ee); err != nil {
-				return "", err
-			}
-			message += fmt.Sprintf(" (%s %s)", ee[0]["resource"], ee[0]["code"])
-		}
-
-		return "", errors.New(message)
+		return "", GistParseError(body)
 	}
 
 	var auth AuthorizationResponse
