@@ -6,7 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"syscall"
+
+	"github.com/howeyc/gopass"
 )
 
 var config = ConfigNew()
@@ -145,13 +146,7 @@ func login() error {
 	fmt.Scanf("%s", &username)
 
 	fmt.Print("GitHub password: ")
-	if _, err := syscall.ForkExec("/bin/stty", []string{"-echo"}, nil); err != nil {
-		return err
-	}
-	fmt.Scanf("%s", &password)
-	if _, err := syscall.ForkExec("/bin/stty", []string{"echo"}, nil); err != nil {
-		return err
-	}
+	password = string(gopass.GetPasswd())
 
 	fmt.Println()
 
