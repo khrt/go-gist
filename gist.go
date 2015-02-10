@@ -59,8 +59,7 @@ func (gist *Gist) Create(anonymous bool) (string, error) {
 	}
 
 	var gistResp GistResponse
-	err = json.Unmarshal(body, &gistResp)
-	if err != nil {
+	if err := json.Unmarshal(body, &gistResp); err != nil {
 		return "", err
 	}
 
@@ -89,8 +88,7 @@ func (gist *Gist) Update(uid string) (string, error) {
 	}
 
 	var gistResp GistResponse
-	err = json.Unmarshal(body, &gistResp)
-	if err != nil {
+	if err := json.Unmarshal(body, &gistResp); err != nil {
 		return "", err
 	}
 
@@ -113,8 +111,7 @@ func GistList() ([]*GistResponse, error) {
 	}
 
 	var gistResp []*GistResponse
-	err = json.Unmarshal(body, &gistResp)
-	if err != nil {
+	if err := json.Unmarshal(body, &gistResp); err != nil {
 		return nil, err
 	}
 
@@ -136,7 +133,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
 		var f interface{}
 		if err := json.Unmarshal(body, &f); err != nil {
 			return nil, err

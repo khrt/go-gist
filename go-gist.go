@@ -93,13 +93,22 @@ func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistTy
 		url, err = gist.Create(anonymous)
 	}
 
+	fmt.Println("url:", url)
+
 	if err != nil {
 		return err
 	}
 
-	//if copyFlag {
-	//	url
-	//}
+	if copyFlag {
+		c, err := NewClipboard()
+		if err != nil {
+			return err
+		}
+
+		if err := c.Copy(url); err != nil {
+			return err
+		}
+	}
 
 	fmt.Println(url)
 	return nil
