@@ -22,6 +22,8 @@ func main() {
 	update := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
 	listFlag := flag.Bool("l", false, "List gists.")
 	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")
+	pasteFlag := flag.Bool("P", false, "Paste from the clipboard to gist.")
+	filename := flag.String("f", "", "Sets the filename and syntax type.")
 
 	flag.Parse()
 
@@ -31,8 +33,8 @@ func main() {
 		err = login()
 	} else if *listFlag {
 		err = list()
-	} else if flag.NArg() > 0 {
-		err = createOrUpdate(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args(), *copyFlag)
+	} else if *pasteFlag || flag.NArg() > 0 {
+		err = createOrUpdate(*update, *anonymousFlag, !*privateFlag, *description, *gistType, flag.Args(), *copyFlag, *pasteFlag, *filename)
 	}
 
 	if err != nil {
@@ -68,24 +70,50 @@ func list() error {
 	return nil
 }
 
-func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistType string, args []string, copyFlag bool) error {
+func createOrUpdate(uid string, anonymous, public bool, desc string, gistType string, args []string, copyFlag, pasteFlag bool, filename string) error {
 	gist := &Gist{make(map[string]*File), desc, public}
 
-	for _, name := range flag.Args() {
-		content, err := ioutil.ReadFile(name)
-		if err != nil {
+	var err error
+	var clipboard *Clipboard
+
+	if copyFlag || pasteFlag {
+		if clipboard, err = NewClipboard(); err != nil {
+			return err
+		}
+	}
+
+	if pasteFlag {
+		var name, content string
+
+		if filename != "" {
+			name = filename
+		} else if filename == "" && gistType != "" {
+			name = "a." + gistType
+		} else {
+			name = "untitled"
+		}
+
+		if content, err = clipboard.Paste(); err != nil {
 			return err
 		}
 
-		if gistType != "" {
-			name += "." + gistType
-		}
+		gist.Files[name] = &File{name, content}
+	} else {
+		for _, name := range flag.Args() {
+			content, err := ioutil.ReadFile(name)
+			if err != nil {
+				return err
+			}
 
-		gist.Files[name] = &File{name, string(content)}
+			if gistType != "" {
+				name += "." + gistType
+			}
+
+			gist.Files[name] = &File{name, string(content)}
+		}
 	}
 
 	var url string
-	var err error
 
 	if uid != "" {
 		url, err = gist.Update(uid)
@@ -93,19 +121,12 @@ func createOrUpdate(uid string, anonymous bool, public bool, desc string, gistTy
 		url, err = gist.Create(anonymous)
 	}
 
-	fmt.Println("url:", url)
-
 	if err != nil {
 		return err
 	}
 
 	if copyFlag {
-		c, err := NewClipboard()
-		if err != nil {
-			return err
-		}
-
-		if err := c.Copy(url); err != nil {
+		if err := clipboard.Copy(url); err != nil {
 			return err
 		}
 	}

@@ -57,14 +57,14 @@ func (c *Clipboard) Copy(content string) error {
 	return nil
 }
 
-func (c *Clipboard) Paste() ([]byte, error) {
+func (c *Clipboard) Paste() (string, error) {
 	var stdout bytes.Buffer
 
 	cmd := exec.Command(c.pasteCmd)
 	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return stdout.Bytes(), nil
+	return stdout.String(), nil
 }
