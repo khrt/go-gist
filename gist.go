@@ -5,9 +5,13 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 )
 
-const GitHubAPIURL = "https://api.github.com"
+const (
+	GistURI      = "gist.github.com"
+	GitHubAPIURL = "https://api.github.com"
+)
 
 type File struct {
 	Name    string `json:"-"`
@@ -65,6 +69,11 @@ func (gist *Gist) Create(anonymous bool) (string, error) {
 }
 
 func (gist *Gist) Update(uid string) (string, error) {
+	re := regexp.MustCompile("http(?:s?)://" + GistURI + "/(.+)")
+	if matched := re.MatchString(uid); matched {
+		uid = re.ReplaceAllString(uid, "$1")
+	}
+
 	buf := bytes.NewBuffer(nil)
 	e := json.NewEncoder(buf)
 	if err := e.Encode(gist); err != nil {
