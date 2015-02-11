@@ -10,6 +10,11 @@ import (
 	"github.com/howeyc/gopass"
 )
 
+const (
+	VERSION         = "0.1"
+	DefaultGistName = "a"
+)
+
 var config = ConfigNew()
 
 func main() {
@@ -35,8 +40,8 @@ func main() {
 		err = login()
 	} else if *listFlag {
 		err = list()
-	} else if *pasteFlag || flag.NArg() > 0 {
-		err = makeGist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag)
+	} else {
+		err = gist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag)
 	}
 
 	if err != nil {
@@ -72,7 +77,7 @@ func list() error {
 	return nil
 }
 
-func makeGist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag bool) error {
+func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag bool) error {
 	var err error
 	var clipboard *Clipboard
 
@@ -84,23 +89,7 @@ func makeGist(uid, desc, filetype, filename string, public, anonymous, copyFlag,
 
 	gist := &Gist{make(map[string]*File), desc, public}
 
-	if pasteFlag {
-		var name, content string
-
-		if filename != "" {
-			name = filename
-		} else if filename == "" && filetype != "" {
-			name = "untitled." + filetype
-		} else {
-			name = "untitled"
-		}
-
-		if content, err = clipboard.Paste(); err != nil {
-			return err
-		}
-
-		gist.Files[name] = &File{name, content}
-	} else {
+	if flag.NArg() > 0 {
 		for _, name := range flag.Args() {
 			content, err := ioutil.ReadFile(name)
 			if err != nil {
@@ -113,6 +102,29 @@ func makeGist(uid, desc, filetype, filename string, public, anonymous, copyFlag,
 
 			gist.Files[name] = &File{name, string(content)}
 		}
+	} else {
+		var name string
+		var content []byte
+
+		if filename != "" {
+			name = filename
+		} else if filename == "" && filetype != "" {
+			name = DefaultGistName + "." + filetype
+		} else {
+			name = DefaultGistName
+		}
+
+		if pasteFlag {
+			if content, err = clipboard.Paste(); err != nil {
+				return err
+			}
+		} else {
+			if content, err = ioutil.ReadAll(os.Stdin); err != nil {
+				return err
+			}
+		}
+
+		gist.Files[name] = &File{name, string(content)}
 	}
 
 	var url string
@@ -142,7 +154,7 @@ func login() error {
 
 	var username, password string
 
-	fmt.Print("GitHub usename: ")
+	fmt.Print("GitHub username: ")
 	fmt.Scanf("%s", &username)
 
 	fmt.Print("GitHub password: ")
