@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestConfigUpdate(t *testing.T) {
-	c := ConfigNew()
+	c := NewConfig()
 
 	origApiKey := c.Token
 	newApiKey := "newkey"

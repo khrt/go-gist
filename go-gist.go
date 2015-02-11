@@ -15,10 +15,39 @@ const (
 	DefaultGistName = "a"
 )
 
-var config = ConfigNew()
+var config = NewConfig()
 
 func main() {
 	config.Load()
+
+	//	usage := `go-gist
+	//
+	//go-gist lets you upload to https://gist.github.com/. Go clone of the official Gist client.
+	//
+	//Usage:
+	//	go-gist (-o|-c|-e) [-p] [-s] [-R] [-d DESC] [-a] [-u URL] [-P] (-f NAME | -t EXT) FILE...
+	//	go-gist --login
+	//
+	//Options:
+	//	--login						Authenticate gist on this computer.
+	//	-f NAME --filename=NAME		Sets the filename and syntax type.
+	//	-t EXT --type=EXT			Sets the file extension and syntax type.
+	//	-p --private				Indicates whether the gist is private.
+	//	-d DESC --description=DESC  Adds a description to your gist.
+	//	-s --shorten                *Shorten the gist URL using git.io.
+	//	-u URL --update=URL			Update an existing gist.
+	//	-a --anonymous				Create an anonymous gist.
+	//	-c --copy					Copy the resulting URL to the clipboard.
+	//	-e --embed					*Copy the embed code for the gist to the clipboard.
+	//	-o --open					*Open the resulting URL in a browser.
+	//	-P --paste					Paste from the clipboard to gist.
+	//	-R --raw					*Display raw URL of the new gist.
+	//	-l USER --list=USER		    Lists all gists for a user.
+	//	-h --help					Show this help message and exit.
+	//	--version					Show version and exit.`
+	//
+	//	arguments, err := docopt.Parse(usage, nil, true, "go-gist "+VERSION, false)
+	//	fmt.Println(arguments)
 
 	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
 	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")

@@ -16,7 +16,7 @@ type Config struct {
 	file  string
 }
 
-func ConfigNew() *Config {
+func NewConfig() *Config {
 	c := &Config{}
 	c.Load()
 	return c
