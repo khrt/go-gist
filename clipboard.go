@@ -25,6 +25,7 @@ func NewClipboard() (*Clipboard, error) {
 
 	for _, c := range ClipboardCommands {
 		if runtime.GOOS == "windows" {
+			// TODO: Windows
 			return nil, errors.New("Clipboard doesn't work on Windows.")
 		} else {
 			cmd := exec.Command("which", strings.Split(c.copyCmd, " ")[0])
@@ -57,14 +58,14 @@ func (c *Clipboard) Copy(content string) error {
 	return nil
 }
 
-func (c *Clipboard) Paste() (string, error) {
+func (c *Clipboard) Paste() ([]byte, error) {
 	var stdout bytes.Buffer
 
 	cmd := exec.Command(c.pasteCmd)
 	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return stdout.String(), nil
+	return stdout.Bytes(), nil
 }

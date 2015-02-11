@@ -5,32 +5,21 @@ import (
 	"time"
 )
 
-func TestNewClipboard(t *testing.T) {
-	if _, err := NewClipboard(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestClipboardCopy(t *testing.T) {
+func TestClipboard(t *testing.T) {
 	c, err := NewClipboard()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	message := "GO COPY TEST " + time.Now().String()
+	var message string
+
+	message = "GO COPY TEST " + time.Now().String()
 
 	if err := c.Copy(message); err != nil {
 		t.Fatal(err)
 	}
-}
 
-func TestClipboardPaste(t *testing.T) {
-	c, err := NewClipboard()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	message := "GO PASTE TEST " + time.Now().String()
+	message = "GO PASTE TEST " + time.Now().String()
 
 	if err := c.Copy(message); err != nil {
 		t.Fatal(err)
