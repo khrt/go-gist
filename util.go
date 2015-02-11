@@ -25,7 +25,7 @@ func GistParseError(body []byte) error {
 		for _, m := range errs {
 			messages = append(messages, fmt.Sprintf("%s %s", m["resource"], m["code"]))
 		}
-		message += " (" + strings.Join(messages, ",") + ")"
+		message += " (" + strings.Join(messages, ", ") + ")"
 	}
 
 	return errors.New(message)
