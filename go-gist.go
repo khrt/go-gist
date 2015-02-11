@@ -116,7 +116,7 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 		}
 	}
 
-	gist := &Gist{make(map[string]*File), desc, public}
+	gist := &Gist{Files: make(map[string]*File), Description: desc, Public: public}
 
 	if flag.NArg() > 0 {
 		for _, name := range flag.Args() {
@@ -129,7 +129,7 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 				name += "." + filetype
 			}
 
-			gist.Files[name] = &File{name, string(content)}
+			gist.Files[name] = &File{Name: name, Content: string(content)}
 		}
 	} else {
 		var name string
@@ -153,7 +153,7 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 			}
 		}
 
-		gist.Files[name] = &File{name, string(content)}
+		gist.Files[name] = &File{Name: name, Content: string(content)}
 	}
 
 	var url string

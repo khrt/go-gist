@@ -16,27 +16,20 @@ const (
 type File struct {
 	Name    string `json:"-"`
 	Content string `json:"content"`
+	// Response:
+	Size     int    `json:"size"`
+	Type     string `json:"type"`
+	Language string `json:"language"`
 }
 
 type Gist struct {
 	Files       map[string]*File `json:"files"`
 	Description string           `json:"description"`
 	Public      bool             `json:"public"`
-}
-
-type FileResponse struct {
-	Size     int    `json:"size"`
-	Type     string `json:"type"`
-	Language string `json:"language"`
-}
-
-type GistResponse struct {
-	Description string                   `json:"description"`
-	Files       map[string]*FileResponse `json:"files"`
-	HtmlUrl     string                   `json:"html_url"`
-	Id          string                   `json:"id"`
-	Public      bool                     `json:"public"`
-	User        string                   `json:"user"`
+	// Response:
+	HtmlUrl string `json:"html_url"`
+	Id      string `json:"id"`
+	User    string `json:"user"`
 }
 
 func (gist *Gist) Create(anonymous bool) (string, error) {
@@ -60,12 +53,12 @@ func (gist *Gist) Create(anonymous bool) (string, error) {
 		return "", err
 	}
 
-	var gistResp GistResponse
-	if err := json.Unmarshal(body, &gistResp); err != nil {
+	var resp Gist
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return "", err
 	}
 
-	return gistResp.HtmlUrl, nil
+	return resp.HtmlUrl, nil
 }
 
 func (gist *Gist) Update(uid string) (string, error) {
@@ -94,15 +87,15 @@ func (gist *Gist) Update(uid string) (string, error) {
 		return "", err
 	}
 
-	var gistResp GistResponse
-	if err := json.Unmarshal(body, &gistResp); err != nil {
+	var resp Gist
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return "", err
 	}
 
-	return gistResp.HtmlUrl, nil
+	return resp.HtmlUrl, nil
 }
 
-func GistList() ([]*GistResponse, error) {
+func GistList() ([]*Gist, error) {
 	req, err := http.NewRequest("GET", GitHubAPIURL+"/gists", nil)
 	if err != nil {
 		return nil, err
@@ -117,12 +110,12 @@ func GistList() ([]*GistResponse, error) {
 		return nil, err
 	}
 
-	var gistResp []*GistResponse
-	if err := json.Unmarshal(body, &gistResp); err != nil {
+	var resp []*Gist
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
 
-	return gistResp, nil
+	return resp, nil
 }
 
 func doRequest(req *http.Request) ([]byte, error) {
