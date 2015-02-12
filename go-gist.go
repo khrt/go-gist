@@ -53,7 +53,7 @@ func main() {
 	filetype := flag.String("t", "", "Sets the file extension and syntax type.")
 	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
 	desc := flag.String("d", "", "A description of the gist.")
-	shortenFlag := flag.Bool("-s", false, "Shorten the gist URL using git.io.")
+	shortenFlag := flag.Bool("s", false, "Shorten the gist URL using git.io.")
 	uid := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
 	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
 	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")

@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	neturl "net/url"
 	"strings"
 )
+
+const GitIOURL = "http://git.io"
 
 func GistParseError(body []byte) error {
 	var err map[string]json.RawMessage
@@ -32,5 +36,15 @@ func GistParseError(body []byte) error {
 }
 
 func Shorten(url string) (string, error) {
-	return "", nil
+	resp, err := http.PostForm(GitIOURL, neturl.Values{"url": {url}})
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 201 {
+		url = resp.Header.Get("Location")
+	}
+
+	return url, nil
 }
