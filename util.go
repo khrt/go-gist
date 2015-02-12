@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	neturl "net/url"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -54,7 +55,9 @@ func Shorten(url string) (string, error) {
 func OpenBrowser(url string) {
 	var browser string
 
-	if runtime.GOOS == "darwin" {
+	if os.Getenv("BROWSER") != "" {
+		browser = os.Getenv("BROWSER")
+	} else if runtime.GOOS == "darwin" {
 		browser = "open"
 	} else if runtime.GOOS == "windows" {
 		browser = `start ""`
