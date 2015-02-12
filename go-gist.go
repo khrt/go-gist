@@ -58,7 +58,7 @@ func main() {
 	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
 	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")
 	//	-e --embed Copy the embed code for the gist to the clipboard.
-	//	-o --open Open the resulting URL in a browser.
+	openFlag := flag.Bool("o", false, "Open the resulting URL in a browser.")
 	pasteFlag := flag.Bool("P", false, "Paste from the clipboard to gist.")
 	rawFlag := flag.Bool("R", false, "Display a raw URL of the new gist.")
 	listFlag := flag.Bool("l", false, "List gists.")
@@ -76,13 +76,40 @@ func main() {
 	} else if *versionFlag {
 		fmt.Println("go-gist " + VERSION)
 	} else {
-		err = gist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag, *rawFlag, *shortenFlag)
+		err = gist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag, *rawFlag, *shortenFlag, *openFlag)
 	}
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func login() error {
+	fmt.Println("Obtaining OAuth2 access_token from GitHub.")
+
+	var username, password string
+
+	fmt.Print("GitHub username: ")
+	fmt.Scanf("%s", &username)
+
+	fmt.Print("GitHub password: ")
+	password = string(gopass.GetPasswd())
+
+	fmt.Println()
+
+	token, err := Authorize(username, password)
+	if err != nil {
+		return err
+	}
+
+	if err := config.Update(token); err != nil {
+		return err
+	}
+
+	fmt.Println("OK")
+
+	return nil
 }
 
 func list() error {
@@ -112,7 +139,7 @@ func list() error {
 	return nil
 }
 
-func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag, rawFlag, shortenFlag bool) error {
+func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag, rawFlag, shortenFlag, openFlag bool) error {
 	var err error
 	var clipboard *Clipboard
 
@@ -195,33 +222,10 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 		}
 	}
 
+	if openFlag {
+		OpenBrowser(url)
+	}
+
 	fmt.Println(url)
-	return nil
-}
-
-func login() error {
-	fmt.Println("Obtaining OAuth2 access_token from GitHub.")
-
-	var username, password string
-
-	fmt.Print("GitHub username: ")
-	fmt.Scanf("%s", &username)
-
-	fmt.Print("GitHub password: ")
-	password = string(gopass.GetPasswd())
-
-	fmt.Println()
-
-	token, err := Authorize(username, password)
-	if err != nil {
-		return err
-	}
-
-	if err := config.Update(token); err != nil {
-		return err
-	}
-
-	fmt.Println("OK")
-
 	return nil
 }

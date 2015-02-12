@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	neturl "net/url"
+	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -47,4 +49,34 @@ func Shorten(url string) (string, error) {
 	}
 
 	return url, nil
+}
+
+func OpenBrowser(url string) {
+	var browser string
+
+	if runtime.GOOS == "darwin" {
+		browser = "open"
+	} else if runtime.GOOS == "windows" {
+		browser = `start ""`
+	} else {
+		cmds := []string{
+			"sensible-browser",
+			"xdg-open",
+			"firefox",
+			"firefox-bin",
+		}
+
+		for _, c := range cmds {
+			cmd := exec.Command("which", c)
+			if err := cmd.Run(); err == nil {
+				browser = c
+			}
+		}
+	}
+
+	if browser != "" {
+		exec.Command(browser, url).Run()
+	} else {
+		fmt.Println("Couldn't open a browser.")
+	}
 }
