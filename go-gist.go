@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	VERSION         = "0.1"
-	DefaultGistName = "a"
+	VERSION = "0.1"
 )
 
 var config = NewConfig()
@@ -34,14 +33,14 @@ func main() {
 	//	-t EXT --type=EXT			Sets the file extension and syntax type.
 	//	-p --private				Indicates whether the gist is private.
 	//	-d DESC --description=DESC  Adds a description to your gist.
-	//	-s --shorten                *Shorten the gist URL using git.io.
+	//	-s --shorten                Shorten the gist URL using git.io.
 	//	-u URL --update=URL			Update an existing gist.
 	//	-a --anonymous				Create an anonymous gist.
 	//	-c --copy					Copy the resulting URL to the clipboard.
-	//	-e --embed					*Copy the embed code for the gist to the clipboard.
-	//	-o --open					*Open the resulting URL in a browser.
+	//	-e --embed					Copy the embed code for the gist to the clipboard.
+	//	-o --open					Open the resulting URL in a browser.
 	//	-P --paste					Paste from the clipboard to gist.
-	//	-R --raw					*Display raw URL of the new gist.
+	//	-R --raw					Display raw URL of the new gist.
 	//	-l USER --list=USER		    Lists all gists for a user.
 	//	-h --help					Show this help message and exit.
 	//	--version					Show version and exit.`
@@ -49,17 +48,22 @@ func main() {
 	//	arguments, err := docopt.Parse(usage, nil, true, "go-gist "+VERSION, false)
 	//	fmt.Println(arguments)
 
-	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
-	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")
-	listFlag := flag.Bool("l", false, "List gists.")
 	loginFlag := flag.Bool("login", false, "Authenticate gist on this computer.")
-	pasteFlag := flag.Bool("P", false, "Paste from the clipboard to gist.")
-	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
-
-	desc := flag.String("d", "", "A description of the gist.")
 	filename := flag.String("f", "", "Sets the filename and syntax type.")
 	filetype := flag.String("t", "", "Sets the file extension and syntax type.")
+	privateFlag := flag.Bool("p", false, "Indicates whether the gist is private.")
+	desc := flag.String("d", "", "A description of the gist.")
+	shortenFlag := flag.Bool("-s", false, "Shorten the gist URL using git.io.")
 	uid := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
+	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
+	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")
+	//	-e --embed Copy the embed code for the gist to the clipboard.
+	//	-o --open Open the resulting URL in a browser.
+	pasteFlag := flag.Bool("P", false, "Paste from the clipboard to gist.")
+	rawFlag := flag.Bool("R", false, "Display a raw URL of the new gist.")
+	listFlag := flag.Bool("l", false, "List gists.")
+
+	versionFlag := flag.Bool("version", false, "Show version and exit.")
 
 	flag.Parse()
 
@@ -69,8 +73,10 @@ func main() {
 		err = login()
 	} else if *listFlag {
 		err = list()
+	} else if *versionFlag {
+		fmt.Println("go-gist " + VERSION)
 	} else {
-		err = gist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag)
+		err = gist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag, *rawFlag, *shortenFlag)
 	}
 
 	if err != nil {
@@ -106,7 +112,7 @@ func list() error {
 	return nil
 }
 
-func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag bool) error {
+func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag, rawFlag, shortenFlag bool) error {
 	var err error
 	var clipboard *Clipboard
 
@@ -125,7 +131,9 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 				return err
 			}
 
-			if filetype != "" {
+			if filename != "" {
+				name = filename
+			} else if filetype != "" {
 				name += "." + filetype
 			}
 
@@ -137,7 +145,7 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 
 		if filename != "" {
 			name = filename
-		} else if filename == "" && filetype != "" {
+		} else if filetype != "" {
 			name = DefaultGistName + "." + filetype
 		} else {
 			name = DefaultGistName
@@ -148,6 +156,7 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 				return err
 			}
 		} else {
+			fmt.Println("(type a gist. <ctrl-c> to cancel, <ctrl-d> when done)")
 			if content, err = ioutil.ReadAll(os.Stdin); err != nil {
 				return err
 			}
@@ -166,6 +175,18 @@ func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pas
 
 	if err != nil {
 		return err
+	}
+
+	if rawFlag {
+		if url, err = gist.Rawify(); err != nil {
+			return err
+		}
+	}
+
+	if shortenFlag {
+		if url, err = Shorten(url); err != nil {
+			return err
+		}
 	}
 
 	if copyFlag {

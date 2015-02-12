@@ -30,3 +30,7 @@ func GistParseError(body []byte) error {
 
 	return errors.New(message)
 }
+
+func Shorten(url string) (string, error) {
+	return "", nil
+}

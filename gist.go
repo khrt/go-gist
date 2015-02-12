@@ -3,14 +3,16 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 )
 
 const (
-	GistURI      = "gist.github.com"
-	GitHubAPIURL = "https://api.github.com"
+	DefaultGistName = "a"
+	GistURI         = "gist.github.com"
+	GitHubAPIURL    = "https://api.github.com"
 )
 
 type File struct {
@@ -53,12 +55,11 @@ func (gist *Gist) Create(anonymous bool) (string, error) {
 		return "", err
 	}
 
-	var resp Gist
-	if err := json.Unmarshal(body, &resp); err != nil {
+	if err := json.Unmarshal(body, &gist); err != nil {
 		return "", err
 	}
 
-	return resp.HtmlUrl, nil
+	return gist.HtmlUrl, nil
 }
 
 func (gist *Gist) Update(uid string) (string, error) {
@@ -116,6 +117,34 @@ func GistList() ([]*Gist, error) {
 	}
 
 	return resp, nil
+}
+
+func (gist *Gist) Rawify() (string, error) {
+	if gist.HtmlUrl == "" {
+		return "", errors.New("HTML URL is empty.")
+	}
+
+	req, _ := http.NewRequest("GET", gist.HtmlUrl, nil)
+	client := &http.Transport{}
+	resp, err := client.RoundTrip(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	var url string
+
+	if resp.StatusCode == 200 {
+		url = gist.HtmlUrl + "/raw"
+	} else if resp.StatusCode == 302 {
+		gist.HtmlUrl = resp.Header.Get("location")
+		if url, err = gist.Rawify(); err != nil {
+			return "", err
+		}
+	}
+
+	return url, nil
 }
 
 func doRequest(req *http.Request) ([]byte, error) {
