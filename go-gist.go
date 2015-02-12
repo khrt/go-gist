@@ -57,7 +57,6 @@ func main() {
 	uid := flag.String("u", "", "Update an existing gist. Takes ID as an argument.")
 	anonymousFlag := flag.Bool("a", false, "Create an anonymous gist.")
 	copyFlag := flag.Bool("c", false, "Copy the resulting URL to the clipboard.")
-	//	-e --embed Copy the embed code for the gist to the clipboard.
 	openFlag := flag.Bool("o", false, "Open the resulting URL in a browser.")
 	pasteFlag := flag.Bool("P", false, "Paste from the clipboard to gist.")
 	rawFlag := flag.Bool("R", false, "Display a raw URL of the new gist.")
@@ -76,7 +75,7 @@ func main() {
 	} else if *versionFlag {
 		fmt.Println("go-gist " + VERSION)
 	} else {
-		err = gist(*uid, *desc, *filetype, *filename, !*privateFlag, *anonymousFlag, *copyFlag, *pasteFlag, *rawFlag, *shortenFlag, *openFlag)
+		err = gist(*uid, *desc, *filetype, *filename, !*privateFlag, *shortenFlag, *anonymousFlag, *copyFlag, *openFlag, *pasteFlag, *rawFlag)
 	}
 
 	if err != nil {
@@ -139,7 +138,7 @@ func list() error {
 	return nil
 }
 
-func gist(uid, desc, filetype, filename string, public, anonymous, copyFlag, pasteFlag, rawFlag, shortenFlag, openFlag bool) error {
+func gist(uid, desc, filetype, filename string, public, shortenFlag, anonymous, copyFlag, openFlag, pasteFlag, rawFlag bool) error {
 	var err error
 	var clipboard *Clipboard
 
